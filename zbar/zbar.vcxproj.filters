@@ -123,6 +123,7 @@
     <ClInclude Include="sqcode.h" />
     <ClInclude Include="symbol.h" />
     <ClInclude Include="timer.h" />
+    <ClInclude Include="debug.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libzbar-0.def" />

@@ -194,6 +194,7 @@
     <ClCompile Include="symbol.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="debug.h" />
     <ClInclude Include="decoder.h" />
     <ClInclude Include="decoder\codabar.h" />
     <ClInclude Include="decoder\code128.h" />
