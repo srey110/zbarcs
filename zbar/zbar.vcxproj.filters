@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="decoder">
+      <UniqueIdentifier>{d17ea39c-a52e-4ea5-9f7e-df16d52a34b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="qrcode">
+      <UniqueIdentifier>{8d329125-934c-4a68-9a5d-877dca549763}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="decoder\codabar.c">
+      <Filter>decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="decoder\code39.c">
+      <Filter>decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="decoder\code93.c">
+      <Filter>decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="decoder\code128.c">
+      <Filter>decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="decoder\databar.c">
+      <Filter>decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="decoder\ean.c">
+      <Filter>decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="decoder\i25.c">
+      <Filter>decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="decoder\qr_finder.c">
+      <Filter>decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="decoder\sq_finder.c">
+      <Filter>decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="qrcode\bch15_5.c">
+      <Filter>qrcode</Filter>
+    </ClCompile>
+    <ClCompile Include="qrcode\binarize.c">
+      <Filter>qrcode</Filter>
+    </ClCompile>
+    <ClCompile Include="qrcode\isaac.c">
+      <Filter>qrcode</Filter>
+    </ClCompile>
+    <ClCompile Include="qrcode\qrdec.c">
+      <Filter>qrcode</Filter>
+    </ClCompile>
+    <ClCompile Include="qrcode\qrdectxt.c">
+      <Filter>qrcode</Filter>
+    </ClCompile>
+    <ClCompile Include="qrcode\rs.c">
+      <Filter>qrcode</Filter>
+    </ClCompile>
+    <ClCompile Include="qrcode\util.c">
+      <Filter>qrcode</Filter>
+    </ClCompile>
+    <ClCompile Include="config.c" />
+    <ClCompile Include="convert.c" />
+    <ClCompile Include="decoder.c" />
+    <ClCompile Include="error.c" />
+    <ClCompile Include="image.c" />
+    <ClCompile Include="img_scanner.c" />
+    <ClCompile Include="refcnt.c" />
+    <ClCompile Include="scanner.c" />
+    <ClCompile Include="sqcode.c" />
+    <ClCompile Include="symbol.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="decoder\codabar.h">
+      <Filter>decoder</Filter>
+    </ClInclude>
+    <ClInclude Include="decoder\code39.h">
+      <Filter>decoder</Filter>
+    </ClInclude>
+    <ClInclude Include="decoder\code93.h">
+      <Filter>decoder</Filter>
+    </ClInclude>
+    <ClInclude Include="decoder\code128.h">
+      <Filter>decoder</Filter>
+    </ClInclude>
+    <ClInclude Include="decoder\databar.h">
+      <Filter>decoder</Filter>
+    </ClInclude>
+    <ClInclude Include="decoder\ean.h">
+      <Filter>decoder</Filter>
+    </ClInclude>
+    <ClInclude Include="decoder\i25.h">
+      <Filter>decoder</Filter>
+    </ClInclude>
+    <ClInclude Include="decoder\qr_finder.h">
+      <Filter>decoder</Filter>
+    </ClInclude>
+    <ClInclude Include="decoder\sq_finder.h">
+      <Filter>decoder</Filter>
+    </ClInclude>
+    <ClInclude Include="qrcode\bch15_5.h">
+      <Filter>qrcode</Filter>
+    </ClInclude>
+    <ClInclude Include="qrcode\binarize.h">
+      <Filter>qrcode</Filter>
+    </ClInclude>
+    <ClInclude Include="qrcode\isaac.h">
+      <Filter>qrcode</Filter>
+    </ClInclude>
+    <ClInclude Include="qrcode\qrdec.h">
+      <Filter>qrcode</Filter>
+    </ClInclude>
+    <ClInclude Include="qrcode\rs.h">
+      <Filter>qrcode</Filter>
+    </ClInclude>
+    <ClInclude Include="qrcode\util.h">
+      <Filter>qrcode</Filter>
+    </ClInclude>
+    <ClInclude Include="decoder.h" />
+    <ClInclude Include="error.h" />
+    <ClInclude Include="image.h" />
+    <ClInclude Include="img_scanner.h" />
+    <ClInclude Include="qrcode.h" />
+    <ClInclude Include="refcnt.h" />
+    <ClInclude Include="sqcode.h" />
+    <ClInclude Include="symbol.h" />
+    <ClInclude Include="timer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libzbar-0.def" />
+  </ItemGroup>
+</Project>

@@ -1225,5 +1225,5 @@ int zbar_negotiate_format(zbar_video_t *vdo, zbar_window_t *win)
 
     zprintf(2, "setting best format %.4s(%08" PRIx32 ") (%d)\n",
 	    (char *)&min_fmt, min_fmt, min_cost);
-    return (zbar_video_init(vdo, min_fmt));
+    return 0;// (zbar_video_init(vdo, min_fmt));
 }
