@@ -107,6 +107,12 @@
     </Link>
     <PostBuildEvent>
       <Command>Del "..\build\libiconv.dll" 
+if $(PlatformTarget)==x64 (
+    Copy "..\build\libiconv64.dll" "..\build\libiconv.dll" 
+)
+if $(PlatformTarget)==x86 (
+    Copy "..\build\libiconv86.dll" "..\build\libiconv.dll" 
+)
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -128,6 +134,12 @@
     </Link>
     <PostBuildEvent>
       <Command>Del "..\build\libiconv.dll" 
+if $(PlatformTarget)==x64 (
+    Copy "..\build\libiconv64.dll" "..\build\libiconv.dll" 
+)
+if $(PlatformTarget)==x86 (
+    Copy "..\build\libiconv86.dll" "..\build\libiconv.dll" 
+)
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -153,6 +165,12 @@
     </Link>
     <PostBuildEvent>
       <Command>Del "..\build\libiconv.dll" 
+if $(PlatformTarget)==x64 (
+    Copy "..\build\libiconv64.dll" "..\build\libiconv.dll" 
+)
+if $(PlatformTarget)==x86 (
+    Copy "..\build\libiconv86.dll" "..\build\libiconv.dll" 
+)
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -178,6 +196,12 @@
     </Link>
     <PostBuildEvent>
       <Command>Del "..\build\libiconv.dll" 
+if $(PlatformTarget)==x64 (
+    Copy "..\build\libiconv64.dll" "..\build\libiconv.dll" 
+)
+if $(PlatformTarget)==x86 (
+    Copy "..\build\libiconv86.dll" "..\build\libiconv.dll" 
+)
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
