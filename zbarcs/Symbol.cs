@@ -13,11 +13,11 @@ namespace zbarcs
     {
         private string data;
         private int quality;
-        private int count;
-        private uint configs;
-        private uint modifiers;
-        private Orientation ori;
-        private Point[] points;
+        //private int count;
+        //private uint configs;
+        //private uint modifiers;
+        //private Orientation ori;
+        //private Point[] points;
         private SymbolType type;
         internal Symbol(IntPtr symbol)
         {
@@ -32,18 +32,18 @@ namespace zbarcs
             //Get the other fields
             this.type = (SymbolType)NativeZBar.zbar_symbol_get_type(symbol);
             this.quality = NativeZBar.zbar_symbol_get_quality(symbol);
-            this.count = NativeZBar.zbar_symbol_get_count(symbol);
-            this.configs = NativeZBar.zbar_symbol_get_configs(symbol);
-            this.modifiers = NativeZBar.zbar_symbol_get_modifiers(symbol);
-            this.ori = (Orientation)NativeZBar.zbar_symbol_get_orientation(symbol);
+            //this.count = NativeZBar.zbar_symbol_get_count(symbol);
+            //this.configs = NativeZBar.zbar_symbol_get_configs(symbol);
+            //this.modifiers = NativeZBar.zbar_symbol_get_modifiers(symbol);
+            //this.ori = (Orientation)NativeZBar.zbar_symbol_get_orientation(symbol);
             //取多边形上的点
-            uint size = NativeZBar.zbar_symbol_get_loc_size(symbol);
-            points = new Point[size];
-            for (uint i = 0; i < size; i++)
-            {
-                points[i].X = NativeZBar.zbar_symbol_get_loc_x(symbol, i);
-                points[i].Y = NativeZBar.zbar_symbol_get_loc_y(symbol, i);
-            }
+            //uint size = NativeZBar.zbar_symbol_get_loc_size(symbol);
+            //points = new Point[size];
+            //for (uint i = 0; i < size; i++)
+            //{
+            //    points[i].X = NativeZBar.zbar_symbol_get_loc_x(symbol, i);
+            //    points[i].Y = NativeZBar.zbar_symbol_get_loc_y(symbol, i);
+            //}
         }
         public override string ToString()
         {
@@ -52,40 +52,40 @@ namespace zbarcs
         /// <summary>
         /// a bitmask indicating which characteristics were detected during decoding.Config
         /// </summary>
-        public uint Configs
-        {
-            get
-            {
-                return this.configs;
-            }
-        }
+        //public uint Configs
+        //{
+        //    get
+        //    {
+        //        return this.configs;
+        //    }
+        //}
         /// <summary>
         /// a bitmask indicating which characteristics were detected during decoding. Modifier
         /// </summary>
-        public uint Modifiers
-        {
-            get
-            {
-                return this.modifiers;
-            }
-        }
-        public Point[] Points
-        {
-            get
-            {
-                return this.points;
-            }
-        }
+        //public uint Modifiers
+        //{
+        //    get
+        //    {
+        //        return this.modifiers;
+        //    }
+        //}
+        //public Point[] Points
+        //{
+        //    get
+        //    {
+        //        return this.points;
+        //    }
+        //}
         /// <summary>
         /// retrieve general orientation of decoded symbol
         /// </summary>
-        public Orientation ORI
-        {
-            get
-            {
-                return this.ori;
-            }
-        }
+        //public Orientation ORI
+        //{
+        //    get
+        //    {
+        //        return this.ori;
+        //    }
+        //}
         /// <value>
         /// Retrieve current cache count.
         /// </value>
@@ -95,13 +95,13 @@ namespace zbarcs
         /// 	0 if symbol is newly verified.
         /// 	&gt; 0 for duplicate symbols
         /// </remarks>
-        public int Count
-        {
-            get
-            {
-                return this.count;
-            }
-        }
+        //public int Count
+        //{
+        //    get
+        //    {
+        //        return this.count;
+        //    }
+        //}
         /// <value>
         /// Data decoded from symbol.
         /// </value>
