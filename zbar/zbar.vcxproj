@@ -105,6 +105,10 @@
       <AdditionalDependencies>winmm.lib;libiconv.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>../zbar/libzbar-0.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>Del "..\build\libiconv.dll" 
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -122,6 +126,10 @@
       <AdditionalDependencies>winmm.lib;libiconv64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>../zbar/libzbar-0.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>Del "..\build\libiconv.dll" 
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -143,6 +151,10 @@
       <AdditionalDependencies>winmm.lib;libiconv.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>../zbar/libzbar-0.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>Del "..\build\libiconv.dll" 
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -164,6 +176,10 @@
       <AdditionalDependencies>winmm.lib;libiconv64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>../zbar/libzbar-0.def</ModuleDefinitionFile>
     </Link>
+    <PostBuildEvent>
+      <Command>Del "..\build\libiconv.dll" 
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="config.c" />
