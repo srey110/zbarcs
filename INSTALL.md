@@ -1,199 +1,245 @@
-Basic Installation
-==================
+Building ZBar On Linux
+======================
 
-   These are generic installation instructions.
+ZBar build uses Meson and Ninja, which requires a separate directory to
+generate the binary files outside the source tree.
 
-   The `configure` shell script attempts to guess correct values for
-various system-dependent variables used during compilation.  It uses
-those values to create a `Makefile` in each directory of the package.
-It may also create one or more `.h` files containing system-dependent
-definitions.  Finally, it creates a shell script `config.status` that
-you can run in the future to recreate the current configuration, a file
-`config.cache` that saves the results of its tests to speed up
-reconfiguring, and a file `config.log` containing compiler output
-(useful mainly for debugging `configure`).
+It follows some instructions about how to install on different systems.
 
-   If you need to do unusual things to compile the package, please try
-to figure out how `configure` could check whether to do them, and mail
-diffs or instructions to the address given in the `README` so they can
-be considered for the next release.  If at some point `config.cache`
-contains results you don't want to keep, you may remove or edit it.
+They assume that the build directory will be named `build`.
 
-   The file `configure.in` is used to create `configure` by a program
-called `autoconf`.  You only need `configure.in` if you want to change
-it or regenerate `configure` using a newer version of `autoconf`.
+Ubuntu and Debian package dependencies
+--------------------------------------
 
-The simplest way to compile this package is:
+Install the compiler and basic build tools:
 
-  1. `cd` to the directory containing the package's source code and type
-     `autoreconf -vfi && ./configure` to configure the package for
-     your system.  If you're using `csh` on an old version of System V,
-     you might need to type `sh ./configure` instead to prevent `csh`
-     from trying to execute `configure` itself.
+    sudo apt-get update
+    sudo apt-get install build-essential meson ninja-build pkg-config gettext
 
-     Running `configure` takes awhile.  While running, it prints some
-     messages telling which features it is checking for.
+Meson enables optional components when their development packages are
+available. To build the common desktop components used by CI, install their
+dependencies as well:
 
-  2. Type `make` to compile the package.
+    sudo apt-get install libdbus-1-dev libjpeg-dev libmagick++-dev \
+        libv4l-dev libgtk-3-dev libgirepository1.0-dev \
+        gobject-introspection libqt5x11extras5-dev qtbase5-dev \
+        python3-dev python3-gi default-jdk-headless xmlto xvfb
 
-  3. Optionally, type `make check` to run any self-tests that come with
-     the package.
+To use GTK 2 instead of GTK 3, install `libgtk2.0-dev` and select `-Dgtk=gtk2`
+when configuring.
 
-  4. Type `make install` to install the programs and any data files and
-     documentation.
 
-  5. You can remove the program binaries and object files from the
-     source code directory by typing `make clean`.  To also remove the
-     files that `configure` created (so you can compile the package for
-     a different kind of computer), type `make distclean`.  There is
-     also a `make maintainer-clean` target, but that is intended mainly
-     for the package's developers.  If you use it, you may have to get
-     all sorts of other programs in order to regenerate files that came
-     with the distribution.
+Fedora package dependencies
+---------------------------
 
-Compilers and Options
-=====================
+Install the build tools and development packages used for Fedora builds:
 
-   Some systems require unusual options for compilation or linking that
-the `configure` script does not know about.  You can give `configure`
-initial values for variables by setting them in the environment.  Using
-a Bourne-compatible shell, you can do that on the command line like
-this:
+    sudo dnf install meson ninja-build dbus-devel gettext-devel \
+        GraphicsMagick-devel gtk3-devel gobject-introspection-devel \
+        libX11-devel libjpeg-devel libv4l-devel qt5-qtbase-devel \
+        qt5-qtx11extras-devel python3-devel xmlto java-devel
 
-     CC=c89 CFLAGS=-O2 LIBS=-lposix ./configure
+Building with meson
+-------------------
 
-Or on systems that have the `env` program, you can do it like this:
+Once package dependencies are satisfied, building it can be done with:
 
-     env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
+    meson setup build
+    meson compile -C build
 
-Compiling For Multiple Architectures
-====================================
+To install the build:
 
-   You can compile the package for more than one kind of computer at the
-same time, by placing the object files for each architecture in their
-own directory.  To do this, you must use a version of `make` that
-supports the `VPATH` variable, such as GNU `make`.  `cd` to the
-directory where you want the object files and executables to go and run
-the `configure` script.  `configure` automatically checks for the
-source code in the directory that `configure` is in and in `../`.
+    sudo meson install -C build
 
-   If you have to use a `make` that does not supports the `VPATH`
-variable, you have to compile the package for one architecture at a time
-in the source code directory.  After you have installed the package for
-one architecture, use `make distclean` before reconfiguring for another
-architecture.
+To run ZBar tests:
 
-Installation Names
-==================
+    meson test -C build
 
-   By default, `make install` will install the package's files in
-`/usr/local/bin`, `/usr/local/man`, etc.  You can specify an
-installation prefix other than `/usr/local` by giving `configure` the
-option `--prefix=PATH`.
+Notice that there are several features that can be optionally built or
+excluded. See `meson_options.txt` for a list of them. For instance,
+to disable video capture, you may use, instead of `meson setup`:
 
-   You can specify separate installation prefixes for
-architecture-specific files and architecture-independent files.  If you
-give `configure` the option `--exec-prefix=PATH`, the package will use
-PATH as the prefix for installing programs and libraries.
-Documentation and other data files will still use the regular prefix.
+    meson setup build -Dvideo=false
 
-   In addition, if you use an unusual directory layout you can give
-options like `--bindir=PATH` to specify different values for particular
-kinds of files.  Run `configure --help` for a list of the directories
-you can set and what kinds of files go in them.
+You can see all available options by using:
 
-   If the package supports it, you can cause programs to be installed
-with an extra prefix or suffix on their names by giving `configure` the
-option `--program-prefix=PREFIX` or `--program-suffix=SUFFIX`.
+    meson configure build
 
-Optional Features
-=================
+Choose the core ZBar and GTK library variants with `-Dlibrary_type=static`,
+`-Dlibrary_type=shared`, or `-Dlibrary_type=both`. The default is `both`.
+For example, to build only static variants of those libraries:
 
-   Some packages pay attention to `--enable-FEATURE` options to
-`configure`, where FEATURE indicates an optional part of the package.
-They may also pay attention to `--with-PACKAGE` options, where PACKAGE
-is something like `gnu-as` or `x` (for the X Window System).  The
-`README` should mention any `--enable-` and `--with-` options that the
-package recognizes.
+    meson setup build -Dlibrary_type=static
 
-   For packages that use the X Window System, `configure` can usually
-find the X include and library files automatically, but if it doesn't,
-you can use the `configure` options `--x-includes=DIR` and
-`--x-libraries=DIR` to specify their locations.
+Meson normally installs under `/usr/local`. Set `--prefix=/usr` during setup
+-to choose a different prefix, like on this example:
 
-Specifying the System Type
-==========================
+    meson setup build -Dgtk=no -Dpython=no -Dqt=false --prefix=/usr
 
-   There may be some features `configure` can not figure out
-automatically, but needs to determine by the type of host the package
-will run on.  Usually `configure` can figure that out, but if it prints
-a message saying it can not guess the host type, give it the
-`--host=TYPE` option.  TYPE can either be a short name for the system
-type, such as `sun4`, or a canonical name with three fields:
-     CPU-COMPANY-SYSTEM
 
-See the file `config.sub` for the possible values of each field.  If
-`config.sub` isn't included in this package, then this package doesn't
-need to know the host type.
+Building ZBar On Windows
+========================
 
-   If you are building compiler tools for cross-compiling, you can also
-use the `--target=TYPE` option to select the type of system they will
-produce code for and the `--build=TYPE` option to select the type of
-system on which you are compiling the package.
+NOTE:
 
-Sharing Defaults
-================
+This is a simplified version of what it was done in order to do the
+CI builds via Github workflow. The the instructions here may be incomplete.
+and/or not reflect the best way to compile ZBar on Windows.
 
-   If you want to set default values for `configure` scripts to share,
-you can create a site shell script called `config.site` that gives
-default values for variables like `CC`, `cache_file`, and `prefix`.
-`configure` looks for `PREFIX/share/config.site` if it exists, then
-`PREFIX/etc/config.site` if it exists.  Or, you can set the
-`CONFIG_SITE` environment variable to the location of the site script.
-A warning: not all `configure` scripts look for a site script.
+If you find inconsistencies, feel free to submit patches improving the
+building steps.
 
-Operation Controls
-==================
+The native Windows CI configuration builds the core library, `zbarimg`, and
+portable test programs. It leaves out bindings, video capture, and GUI tests.
 
-   `configure` recognizes the following options to control how it
-operates.
+Cross-compiling on Ubuntu with MinGW-w64
+-----------------------------------------
 
-`--cache-file=FILE`
-     Use and save the results of the tests in FILE instead of
-     `./config.cache`.  Set FILE to `/dev/null` to disable caching, for
-     debugging `configure`.
+The Ubuntu GitHub Actions jobs cross-compile 32-bit Windows binaries with
+MinGW-w64. Install the same build tools and Windows headers:
 
-`--help`
-     Print a summary of the options to `configure`, and exit.
+    sudo apt-get update
+    sudo apt-get install -y meson ninja-build pkg-config \
+        gcc-mingw-w64 g++-mingw-w64 mingw-w64-i686-dev \
+        win-iconv-mingw-w64-dev
 
-`--quiet`
-`--silent`
-`-q`
-     Do not print messages saying which checks are being made.  To
-     suppress all normal output, redirect it to `/dev/null` (any error
-     messages will still be shown).
+Create a Meson cross file named `mingw-cross.ini`:
 
-`--srcdir=DIR`
-     Look for the package's source code in directory DIR.  Usually
-     `configure` can determine that directory automatically.
+    [binaries]
+    c = 'i686-w64-mingw32-gcc'
+    cpp = 'i686-w64-mingw32-g++'
+    ar = 'i686-w64-mingw32-ar'
+    strip = 'i686-w64-mingw32-strip'
+    windres = 'i686-w64-mingw32-windres'
+    pkgconfig = 'pkg-config'
 
-`--version`
-     Print the version of Autoconf used to generate the `configure`
-     script, and exit.
+    [properties]
+    needs_exe_wrapper = true
 
-`configure` also accepts some other, not widely useful, options.
+    [built-in options]
+    c_args = ['-I/usr/i686-w64-mingw32/include']
+    c_link_args = ['-L/usr/i686-w64-mingw32/lib']
 
-Debian/Ubuntu package build
-===========================
+    [host_machine]
+    system = 'windows'
+    cpu_family = 'x86'
+    cpu = 'i686'
+    endian = 'little'
 
-For Debian/Ubuntu, one alternative way to build ZBar is by using
-pbuilder. In order to install pbuilder, see, for example:
+Configure and build with the Video for Windows backend:
 
-    https://wiki.ubuntu.com/PbuilderHowto
+    meson setup build --cross-file mingw-cross.ini \
+        -Dgtk=no -Dpython=no -Dqt=false -Djava=disabled \
+        -Dgir=false -Dimagemagick=disabled -Dgraphicsmagick=disabled \
+        -Djpeg=disabled -Ddbus=disabled -Dnls=disabled -Dx11=disabled \
+        -Dxshm=disabled -Dxv=disabled -Dbuild_tests=false -Dvideo=true
+    meson compile -C build
 
-Once you have pbuilder installed and configured, you
-can build a ZBar package, running the following commands as
-root:
+To use DirectShow instead, add `-Ddirectshow=true` to the `meson setup`
+command. Meson installs the cross-compiled files under `build`; to stage
+them in a separate directory, run:
 
-    # pbuilder create --basetgz /var/cache/pbuilder/base-test.tgz
-    # pbuilder build --basetgz /var/cache/pbuilder/base-test.tgz ../zbar_0.20.2.dsc
+    DESTDIR="$PWD/stage" meson install -C build
+
+Building natively on Windows with MSYS2
+---------------------------------------
+
+The Windows CI job builds with MSYS2 UCRT64. Install MSYS2 from
+<https://www.msys2.org/>, open the UCRT64 terminal, and install the CI build
+tools:
+
+    pacman -Syu --needed \
+        mingw-w64-ucrt-x86_64-gcc \
+        mingw-w64-ucrt-x86_64-pkgconf \
+        mingw-w64-ucrt-x86_64-meson \
+        mingw-w64-ucrt-x86_64-ninja \
+        mingw-w64-ucrt-x86_64-libiconv \
+        mingw-w64-ucrt-x86_64-gettext \
+        mingw-w64-ucrt-x86_64-imagemagick
+
+From the repository root, configure and build the native Windows test
+configuration:
+
+    meson setup build -Dvideo=false -Dgtk=no -Dpython=no -Dqt=false \
+        -Dgir=false -Djava=disabled -Ddoc=false -Ddbus=disabled \
+        -Dimagemagick=enabled -Dnls=disabled -Dx11=disabled \
+        -Dxshm=disabled -Dxv=disabled
+    meson compile -C build
+    meson test -C build --no-suite display --no-suite regression \
+        --print-errorlogs
+
+These tests cover decoder behavior, image conversion, and image scanning. The
+display and long decoder regression suites are skipped. To install, run
+`meson install -C build` from the UCRT64 terminal.
+
+The release workflow also builds 64-bit and 32-bit packages using the MSYS2
+MINGW64 and MINGW32 environments. Open the matching terminal and set
+`ARCH=x86_64` for MINGW64 or `ARCH=i686` for MINGW32. Install the tools for
+that architecture:
+
+    pacman -Syu --needed \
+        mingw-w64-${ARCH}-gcc \
+        mingw-w64-${ARCH}-meson \
+        mingw-w64-${ARCH}-ninja \
+        mingw-w64-${ARCH}-pkgconf \
+        mingw-w64-${ARCH}-libiconv \
+        mingw-w64-${ARCH}-gettext \
+        base-devel git zip
+
+Build and stage the release files with the same options as GitHub Actions:
+
+    export CPPFLAGS=-D__USE_MINGW_ANSI_STDIO=1
+    meson setup build --prefix=/usr \
+        -Dvideo=false -Dgtk=no -Dgir=false -Dpython=no -Dqt=false \
+        -Djava=disabled -Ddoc=false -Djpeg=disabled \
+        -Dimagemagick=disabled -Dgraphicsmagick=disabled -Ddbus=disabled \
+        -Dnls=disabled -Dx11=disabled -Dxshm=disabled -Dxv=disabled \
+        -Dbuild_tests=false -Dpthread=true
+    meson compile -C build
+    DESTDIR="${PWD}/stage" meson install -C build
+    python3 tools/stage_windows.py "${PWD}/stage" \
+        --runtime-bin "${MINGW_PREFIX}/bin"
+    (cd stage && zip -r ../zbar-win_${ARCH}.zip .)
+
+Building ZBar On MacOS
+======================
+
+NOTE:
+
+This is a simplified version of what it was done in order to do the
+CI builds via Github workflow. The the instructions here may be incomplete.
+and/or not reflect the best way to compile ZBar on MacOS.
+
+If you find inconsistencies, feel free to submit patches improving the
+building steps.
+
+The macOS CI configuration builds the core library, `zbarimg`, and portable
+test programs. It leaves out bindings, video capture, and GUI tests.
+
+
+Install the dependencies used by the macOS GitHub Actions build, including
+ImageMagick for `zbarimg` and the image scanning tests:
+
+    brew install meson ninja pkg-config libjpeg-turbo gettext imagemagick
+
+Set the include and library paths from Homebrew, then configure and build:
+
+    export CPPFLAGS="-I$(brew --prefix)/include"
+    export LDFLAGS="-L$(brew --prefix)/lib"
+    meson setup build \
+        -Dvideo=false \
+        -Dpython=no \
+        -Dgtk=no \
+        -Dgir=false \
+        -Dqt=false \
+        -Djava=disabled \
+        -Ddoc=false \
+        -Dimagemagick=enabled
+    meson compile -C build
+    meson test -C build --no-suite display --no-suite regression \
+        --print-errorlogs
+
+This runs the decoder, image conversion, and image scanning tests. The display
+and long decoder regression suites are skipped. To install, use:
+
+    meson install -C build

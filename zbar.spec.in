@@ -1,160 +1,174 @@
+%ifarch %{java_arches}
+%global JAVA 1
+%global JAVA_OPTION -Djava=enabled
+%else
+%global JAVA 0
+%global JAVA_OPTION -Djava=disabled
+%endif
+
 Name: zbar
 Summary: bar code scanning and decoding
 Version: @VERSION@
 Release: 1
-License: LGPL
-Group: Development/Libraries
-URL: http://zbar.sourceforge.net
-Packager: Vit Hrachovy <fangorn34@users.sourceforge.net>
-Source: zbar-%{version}.tar.gz
-Requires: ImageMagick-c++
-BuildPreReq: pkgconfig, libX11-devel, python-devel, gtk2-devel, pygtk2-devel, qt-devel >= 4, ImageMagick-c++-devel
-Prefix: %{_prefix}
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+License: LGPL-2.1-or-later
+URL: https://github.com/mchehab/zbar
+Source0: %{name}-%{version}.tar.gz
+
+BuildRequires: meson
+BuildRequires: ninja-build
+BuildRequires: dbus-devel
+BuildRequires: gettext-devel
+BuildRequires: GraphicsMagick-devel
+BuildRequires: gtk3-devel
+BuildRequires: gobject-introspection-devel
+BuildRequires: libX11-devel
+BuildRequires: libjpeg-devel
+BuildRequires: libv4l-devel
+BuildRequires: qt5-qtbase-devel
+BuildRequires: qt5-qtx11extras-devel
+%if %{JAVA}
+BuildRequires: java-devel
+%endif
+BuildRequires: python3-devel
+BuildRequires: xmlto
 
 %description
-The ZBar Bar Code Reader is a library for scanning and decoding bar
-codes from various sources such as video streams, image files or raw
-intensity sensors.  It supports EAN, UPC, Code 128, Code 93, Code 39
-and Interleaved 2 of 5. The flexible, layered architecture features a
-fast, streaming interface with a minimal memory footprint.
+ZBar Bar Code Reader is an open source software suite for reading bar
+codes from various sources, such as video streams, image files and raw
+intensity sensors. It supports EAN-13/UPC-A, UPC-E, EAN-8, Code 128,
+Code 93, Code 39, Codabar, Interleaved 2 of 5, DataBar, QR Code, SQ Code,
+and PDF417.
 
 %package devel
-Group: Development/Libraries
-Summary: bar code library extra development files
-Requires: %{name} = %{version}
+Summary: Bar code reader library extra development files
+Requires: %{name}-libs%{_isa} = %{version}-%{release}
 
 %description devel
-The ZBar Bar Code Reader is a library for scanning and decoding bar
-codes from various sources such as video streams, image files or raw
-intensity sensors.  It supports EAN, UPC, Code 128, Code 93, Code 39
-and Interleaved 2 of 5. The flexible, layered architecture features a
-fast, streaming interface with a minimal memory footprint.
-
 This package contains header files and additional libraries used for
 developing applications that read bar codes with this library.
 
+%package libs
+Summary: Bar code reader library
+
+%description libs
+This package contains the ZBar Bar Code Reader library.
+
 %package gtk
-Group: Development/Libraries
-Summary: bar code reader GTK widget
-Requires: %{name} = %{version}, gtk2
+Summary: Bar code reader GTK widget
+Requires: %{name}-libs%{_isa} = %{version}-%{release}
 
 %description gtk
-The ZBar Bar Code Reader is a library for scanning and decoding bar
-codes from various sources such as video streams, image files or raw
-intensity sensors.  It supports EAN, UPC, Code 128, Code 93, Code 39
-and Interleaved 2 of 5. The flexible, layered architecture features a
-fast, streaming interface with a minimal memory footprint.
-
 This package contains a bar code scanning widget for use with GUI
-applications based on GTK+-2.0.
+applications based on GTK 3.
 
 %package gtk-devel
-Group: Development/Libraries
-Summary: bar code reader GTK widget extra development files
-Requires: %{name}-gtk = %{version}, %{name}-devel = %{version}, gtk2-devel
+Summary: Bar code reader GTK widget extra development files
+Requires: %{name}-devel%{_isa} = %{version}-%{release}
+Requires: %{name}-gtk%{_isa} = %{version}-%{release}
 
 %description gtk-devel
-The ZBar Bar Code Reader is a library for scanning and decoding bar
-codes from various sources such as video streams, image files or raw
-intensity sensors.  It supports EAN, UPC, Code 128, Code 93, Code 39
-and Interleaved 2 of 5. The flexible, layered architecture features a
-fast, streaming interface with a minimal memory footprint.
-
 This package contains header files and additional libraries used for
-developing GUI applications based on GTK+-2.0 that include a bar code
+developing GUI applications based on GTK 3 that include a bar code
 scanning widget.
-
-%package pygtk
-Group: Development/Libraries
-Summary: bar code reader PyGTK widget
-Requires: %{name} = %{version}, pygtk2
-
-%description pygtk
-The ZBar Bar Code Reader is a library for scanning and decoding bar
-codes from various sources such as video streams, image files or raw
-intensity sensors.  It supports EAN, UPC, Code 128, Code 93, Code 39
-and Interleaved 2 of 5. The flexible, layered architecture features a
-fast, streaming interface with a minimal memory footprint.
-
-This package contains a bar code scanning widget for use in GUI
-applications based on PyGTK.
 
 %package qt
-Group: Development/Libraries
-Summary: bar code reader Qt widget
-Requires: %{name} = %{version}, qt >= 4
+Summary: Bar code reader Qt widget
+Requires: %{name}-libs%{_isa} = %{version}-%{release}
 
 %description qt
-The ZBar Bar Code Reader is a library for scanning and decoding bar
-codes from various sources such as video streams, image files or raw
-intensity sensors.  It supports EAN, UPC, Code 128, Code 93, Code 39
-and Interleaved 2 of 5. The flexible, layered architecture features a
-fast, streaming interface with a minimal memory footprint.
-
 This package contains a bar code scanning widget for use with GUI
-applications based on Qt4.
+applications based on Qt5.
 
 %package qt-devel
-Group: Development/Libraries
-Summary: bar code reader Qt widget extra development files
-Requires: %{name}-qt = %{version}, %{name}-devel = %{version}, qt-devel >= 4
+Summary: Bar code reader Qt widget extra development files
+Requires: %{name}-devel%{_isa} = %{version}-%{release}
+Requires: %{name}-qt%{_isa} = %{version}-%{release}
 
 %description qt-devel
-The ZBar Bar Code Reader is a library for scanning and decoding bar
-codes from various sources such as video streams, image files or raw
-intensity sensors.  It supports EAN, UPC, Code 128, Code 93, Code 39
-and Interleaved 2 of 5. The flexible, layered architecture features a
-fast, streaming interface with a minimal memory footprint.
-
 This package contains header files and additional libraries used for
-developing GUI applications based on Qt4 that include a bar code
+developing GUI applications based on Qt5 that include a bar code
 scanning widget.
 
+%package -n python3-zbar
+Summary: Bar code reader Python bindings
+Requires: %{name}-libs%{_isa} = %{version}-%{release}
+Requires: python3-pillow
+
+%description -n python3-zbar
+This package contains a bar code scanning widget for use on
+python applications that work with images.
+
+%if %{JAVA}
+%package java
+Summary: Bar code reader Java library
+Requires: %{name}-devel%{_isa} = %{version}-%{release}
+Requires: %{name}-gtk%{_isa} = %{version}-%{release}
+
+%description java
+This package contains header files and additional libraries used for
+on Java Native Interface (JNI) applications using ZBar.
+%endif
+
 %prep
-%setup -q -n zbar-%{version}
+%setup -q
 
 %build
-./configure --host=%{_host} --build=%{_build} \
-  CFLAGS="${CFLAGS:-%optflags}" \
-  CXXFLAGS="${CXXFLAGS:-%optflags}" \
-  --prefix=$RPM_BUILD_ROOT/%{_prefix} \
-  --docdir=$RPM_BUILD_ROOT/%{_docdir}/%{name}-%{version}
-make
+%meson \
+    -Dpython=python3 \
+    -Dgtk=auto \
+    -Ddbusconfdir=%{_sysconfdir} \
+    -Dgraphicsmagick=enabled \
+    -Dxshm=disabled \
+    -Dxv=disabled \
+    -Dcodes=ean,databar,code128,code93,code39,codabar,i25,qrcode,sqcode,pdf417 \
+    -Ddefault_library=shared \
+    -Ddocdir=%{_docdir}/%{name}-%{version} \
+    %{JAVA_OPTION}
+
+%meson_build
 
 %install
-rm -rf $RPM_BUILD_ROOT
-make install
+rm -rf %{buildroot}
+%meson_install
+rm -rf %{buildroot}%{_docdir}/%{name}-%{version}/
+%if %{JAVA}
+install -d %{buildroot}%{_jnidir}
+mv %{buildroot}%{_datadir}/zbar/lib/zbar.jar %{buildroot}%{_jnidir}
+mv %{buildroot}%{_datadir}/zbar/lib/libzbarjni.so* %{buildroot}%{_libdir}
+%endif
+install -D -m 0644 test/test_python.py \
+    %{buildroot}%{_docdir}/test_python.py
 
-%clean
-rm -rf $RPM_BUILD_ROOT
+#Remove .la and .a files
+find ${RPM_BUILD_ROOT} -name '*.la' -or -name '*.a' | xargs rm -f
 
-%post
-ldconfig
+%ldconfig_scriptlets
 
-%postun
-ldconfig
+%ldconfig_scriptlets devel
+
+%ldconfig_scriptlets gtk
+
+%ldconfig_scriptlets qt
+
+%find_lang zbar
 
 %files
-%defattr(-,root,root)
+%doc NEWS.md README.md INSTALL.md
 %{_bindir}/zbarimg
 %{_bindir}/zbarcam
-%{_libdir}/libzbar.so.*
-%{_datadir}/man/man1/*
-%doc %{_docdir}/%{name}-%{version}/COPYING
-%doc %{_docdir}/%{name}-%{version}/HACKING.md
-%doc %{_docdir}/%{name}-%{version}/INSTALL
-%doc %{_docdir}/%{name}-%{version}/LICENSE.md
-%doc %{_docdir}/%{name}-%{version}/NEWS.md
-%doc %{_docdir}/%{name}-%{version}/README
-%doc %{_docdir}/%{name}-%{version}/TODO.md
+%{_mandir}/man1/*
+%{_sysconfdir}/dbus-1/system.d/org.linuxtv.Zbar.conf
+
+%files libs -f zbar.lang
+%license COPYING LICENSE.md
+%{_libdir}/libzbar.so.0*
+%{_libdir}/girepository-1.0/ZBar-1.0.typelib
 
 %files devel
-%defattr(-,root,root)
-%{_libdir}/libzbar.la
-%{_libdir}/libzbar.a
+%doc HACKING.md TODO.md
 %{_libdir}/libzbar.so
 %{_libdir}/pkgconfig/zbar.pc
+%dir %{_includedir}/zbar
 %{_includedir}/zbar.h
 %{_includedir}/zbar/Exception.h
 %{_includedir}/zbar/Symbol.h
@@ -165,50 +179,36 @@ ldconfig
 %{_includedir}/zbar/Video.h
 %{_includedir}/zbar/Window.h
 %{_includedir}/zbar/Processor.h
+%{_datadir}/gir-1.0/ZBar-1.0.gir
 
 %files gtk
-%defattr(-,root,root)
 %{_libdir}/libzbargtk.so.*
+%{_bindir}/zbarcam-gtk
 
 %files gtk-devel
-%defattr(-,root,root)
-%{_libdir}/libzbargtk.la
-%{_libdir}/libzbargtk.a
 %{_libdir}/libzbargtk.so
 %{_libdir}/pkgconfig/zbar-gtk.pc
 %{_includedir}/zbar/zbargtk.h
 
-%files pygtk
-%defattr(-,root,root)
-%{_libdir}/python*
-
 %files qt
-%defattr(-,root,root)
 %{_libdir}/libzbarqt.so.*
+%{_bindir}/zbarcam-qt
 
 %files qt-devel
-%defattr(-,root,root)
-%{_libdir}/libzbarqt.la
-%{_libdir}/libzbarqt.a
 %{_libdir}/libzbarqt.so
 %{_libdir}/pkgconfig/zbar-qt.pc
 %{_includedir}/zbar/QZBar*.h
 
+%if %{JAVA}
+%files java
+%{_jnidir}/zbar.jar
+%{_libdir}/libzbarjni.so*
+%endif
+
+%files -n python3-zbar
+%{python3_sitearch}/zbar*.so
+%{_docdir}/test_python.py
+
 %changelog
-* Thu Apr 21 2009 spadix <spadix@users.sourceforge.net>
-- version 0.7 project name change
-
-* Thu Jul 24 2008 spadix <spadix@users.sourceforge.net>
-- version 0.5 updates (new widget packages)
-
-* Sat May 31 2008 spadix <spadix@users.sourceforge.net>
-- version 0.4 updates (description and library version)
-
-* Tue Feb 19 2008 spadix <spadix@users.sourceforge.net>
-- version 0.3 updates (dependencies and files)
-
-* Fri Jun 08 2007 spadix <spadix@users.sourceforge.net>
-- first release
-
-* Tue May 22 2007 Vít Hrachový <fangorn34@users.sourceforge.net>
-- Initial draft
+* Wed Sept 30 2026 Mauro Carvalho Chehab <mchehab@kernel.org> - 0.23.93-1
+- Build moved to Meson

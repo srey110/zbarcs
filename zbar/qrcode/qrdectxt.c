@@ -46,17 +46,28 @@ static int text_is_big5(const unsigned char *_text, int _len)
 {
     int i;
     for (i = 0; i < _len; i++) {
-	if (_text[i] == 0xFF)
+	if (_text[i] == 0xFF || _text[i] == 0x80) // not possible in Big5
 	    return 0;
-	else if (_text[i] >= 0x80) { // first byte is big5
-	    i++;
-	    if (i >= _len) // second byte not exists
+	else if (_text[i] <= 0x7F) // accept mix with single-byte ASCII
+		continue;
+	else if (_text[i] >= 0x81) { // possible Big5 start byte
+	    int w = _text[i] << 8;
+	    if (++i == _len) // second byte does not exist
 		return 0;
-	    if (_text[i] < 0x40 || (_text[i] > 0x7E && _text[i] < 0xA1) ||
-		_text[i] > 0xFE) { // second byte not in range
-		return 0;
-	    }
-	} else { // normal ascii encoding, it's okay
+	    w |= _text[i];
+	    /* non user-defined ranges */
+	    if ((w >= 0xA140 && w <= 0xA3BF) ||
+	        (w >= 0xA3C0 && w <= 0xA3FE) ||
+	        (w >= 0xA440 && w <= 0xC67E) ||
+	        (w >= 0xC940 && w <= 0xF9D5))
+		    continue;
+	    /* user-defined ranges */
+	    if ((w >= 0x8140 && w <= 0xA0FE) ||
+	        (w >= 0xC6A1 && w <= 0xC8FE) ||
+	        (w >= 0xF9D6 && w <= 0xFEFE))
+		    continue;
+	    /* otherwise not valid Big5 double-character */
+	    return 0;
 	}
     }
     return 1;
@@ -140,6 +151,7 @@ int qr_code_data_list_extract_text(const qr_code_data_list *_qrlist,
            parity alone are too ambiguous.*/
 			if (qrdata[j].sa_size == sa_size &&
 			    qrdata[j].sa_parity == sa_parity &&
+			    qrdata[j].sa_index < sa_size &&
 			    sa[qrdata[j].sa_index] < 0) {
 			    sa[qrdata[j].sa_index] = j;
 			    mark[j]		   = 1;
@@ -191,6 +203,13 @@ int qr_code_data_list_extract_text(const qr_code_data_list *_qrlist,
 			}
 		    }
 		}
+
+	 /*
+	  * Add extra spaces for NUL separators that could be inserted
+	  * for each missing run in an incomplete structured-append group.
+	  */
+	    if (sa_size > 1)
+		sa_ctext += sa_size - 1;
 
 	    /*Step 2: Convert the entries.*/
 	    sa_text  = (char *)malloc((sa_ctext + 1) * sizeof(*sa_text));

@@ -33,6 +33,7 @@
 #endif
 
 #include <assert.h>
+#include <stddef.h>
 #include <stdlib.h> /* malloc, free */
 #include <string.h> /* memcmp, memset, memcpy */
 
@@ -858,11 +859,11 @@ static void zbar_send_code_via_dbus(zbar_image_scanner_t *iscn,
 }
 #endif
 
-#define movedelta(dx, dy)                \
-    do {                                 \
-	x += (dx);                       \
-	y += (dy);                       \
-	p += (dx) + ((uintptr_t)(dy)*w); \
+#define movedelta(dx, dy)                                        \
+    do {                                                         \
+	x += (dx);                                               \
+	y += (dy);                                               \
+	p += (ptrdiff_t)(dx) + (ptrdiff_t)(dy) * (ptrdiff_t)(w); \
     } while (0);
 
 static void *_zbar_scan_image(zbar_image_scanner_t *iscn, zbar_image_t *img)
