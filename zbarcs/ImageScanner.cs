@@ -1,65 +1,71 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace zbarcs
 {
     /// <summary>
-    /// Mid-level image scanner interface. reads barcodes from 2-D images
+    /// 中层图像扫描器接口，用于从二维图像中读取条码。
     /// </summary>
     public class ImageScanner : IDisposable
     {
         private IntPtr handle = IntPtr.Zero;
         private bool cache = false;
+
         /// <summary>
-        /// Create a new ImageScanner
+        /// 创建新的图像扫描器。
         /// </summary>
         public ImageScanner()
         {
             this.handle = NativeZBar.zbar_image_scanner_create();
             if (this.handle == IntPtr.Zero)
             {
-                throw new Exception("Failed to create an underlying image_scanner!");
+                throw new OutOfMemoryException("Failed to create an underlying image scanner.");
             }
         }
+
         /// <summary>
-        /// Scan an image for symbols
+        /// 扫描图像中的符号。
         /// </summary>
         /// <remarks>
-        /// Once an image have been scanned the result will be associated with the image.
-        /// Use image.Symbols to access the symbol list.
+        /// 图像扫描完成后，结果会关联到该图像上，可通过
+        /// <see cref="Image.Symbols"/> 获取符号列表。
         /// </remarks>
-        /// <param name="image">
-        /// A <see cref="Image"/> to be scanned
-        /// </param>
-        /// <returns>
-        /// A <see cref="System.Int32"/> number of symbols decoded on the image.
-        /// </returns>
+        /// <param name="image">要扫描的 <see cref="Image"/>。</param>
+        /// <returns>图像中解码出的符号数量。</returns>
         public int Scan(Image image)
         {
+            if (image == null)
+            {
+                throw new ArgumentNullException("image");
+            }
+            ThrowIfDisposed();
+
             int count = NativeZBar.zbar_scan_image(this.handle, image.Handle);
             if (count < 0)
             {
-                throw new Exception("Image scanning failed!");
+                throw new ArgumentException(
+                    "The image format must be Y800 or GREY before it can be scanned.",
+                    "image");
             }
             return count;
         }
+
         /// <summary>
-        /// Scan an image for symbols
+        /// 扫描 System.Drawing.Image 中的符号。
         /// </summary>
-        /// <param name="image">
-        /// A <see cref="System.Drawing.Image"/> to be scanned for symbols
-        /// </param>
+        /// <param name="image">要扫描的 <see cref="System.Drawing.Image"/>。</param>
         /// <remarks>
-        /// This method convert the image to the appropriate format,
-        /// and release the converted image immidiately. While copying
-        /// all the symbols to a list.
+        /// 本方法会把图像转换成 ZBar 需要的格式，并在复制完所有符号后立即释放
+        /// 转换出的图像。
         /// </remarks>
-        /// <returns>
-        /// A list of symbols found in the image
-        /// </returns>
+        /// <returns>图像中解码出的符号列表。</returns>
         public List<Symbol> Scan(System.Drawing.Image image)
         {
+            if (image == null)
+            {
+                throw new ArgumentNullException("image");
+            }
+
             using (Image zimg = new Image(image))
             {
                 using (Image grey = zimg.Convert(Image.FourCC('Y', '8', '0', '0')))
@@ -69,49 +75,159 @@ namespace zbarcs
                 }
             }
         }
-        /// <value>
-        /// Enable or disable the inter-image result cache (default disabled).
-        /// </value>
+
+        /// <summary>
+        /// 启用或禁用帧间结果缓存（默认禁用）。
+        /// </summary>
         /// <remarks>
-        /// Mostly useful for scanning video frames, the cache filters duplicate results from consecutive images,
-        /// while adding some consistency checking and hysteresis to the results.
-        /// this interface also clears the cache.
+        /// 主要用于视频帧扫描。缓存会过滤连续图像中的重复结果，同时增加一致性
+        /// 检查和迟滞；修改该属性也会清空缓存。
         /// </remarks>
         public bool Cache
         {
             get
             {
+                ThrowIfDisposed();
                 return this.cache;
             }
             set
             {
+                ThrowIfDisposed();
                 NativeZBar.zbar_image_scanner_enable_cache(this.handle, value ? 1 : 0);
                 this.cache = value;
             }
         }
+
         /// <summary>
-        /// Set config for indicated symbology (0 for all) to specified value.
+        /// 为指定符号类型（传 0 表示全部）设置配置值。
         /// </summary>
         public void SetConfiguration(SymbolType symbology, Config config, int value)
         {
-            if (NativeZBar.zbar_image_scanner_set_config(this.handle, (int)symbology, (int)config, value) != 0)
+            ThrowIfDisposed();
+            if (NativeZBar.zbar_image_scanner_set_config(
+                    this.handle,
+                    (int)symbology,
+                    (int)config,
+                    value) != 0)
             {
-                throw new Exception("Failed to set configuration");
+                throw new ArgumentException(
+                    "The configuration does not apply to the specified symbology or the value is out of range.");
             }
         }
-        //This pattern for implementing IDisposable is recommended by:
-        //Framework Design Guidelines, 2. Edition, Section 9.4
 
         /// <summary>
-        /// Dispose this object
+        /// 为指定符号类型设置布尔配置。
+        /// </summary>
+        public void SetConfiguration(SymbolType symbology, Config config, bool value)
+        {
+            SetConfiguration(symbology, config, value ? 1 : 0);
+        }
+
+        /// <summary>
+        /// 获取指定符号类型的配置值。
+        /// </summary>
+        /// <returns>配置项的当前值。</returns>
+        public int GetConfiguration(SymbolType symbology, Config config)
+        {
+            ThrowIfDisposed();
+            int value;
+            unsafe
+            {
+                if (NativeZBar.zbar_image_scanner_get_config(
+                        this.handle,
+                        (int)symbology,
+                        (int)config,
+                        &value) != 0)
+                {
+                    throw new ArgumentException(
+                        "The configuration does not apply to the specified symbology.");
+                }
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// 解析配置字符串并应用到当前图像扫描器。
+        /// </summary>
+        /// <param name="configString">
+        /// 形如 "[symbology.]config[=value]" 的字符串。
+        /// </param>
+        /// <returns>解析并应用成功返回 true。</returns>
+        public bool ParseConfig(string configString)
+        {
+            if (configString == null)
+            {
+                throw new ArgumentNullException("configString");
+            }
+            ThrowIfDisposed();
+
+            SymbolType symbology;
+            Config config;
+            int value;
+            if (!ZBar.ParseConfig(configString, out symbology, out config, out value))
+            {
+                return false;
+            }
+
+            return NativeZBar.zbar_image_scanner_set_config(
+                this.handle,
+                (int)symbology,
+                (int)config,
+                value) == 0;
+        }
+
+        /// <summary>
+        /// 从图像扫描器和指定图像中移除之前解码出的结果。
+        /// </summary>
+        public void RecycleImage(Image image)
+        {
+            if (image == null)
+            {
+                throw new ArgumentNullException("image");
+            }
+            ThrowIfDisposed();
+            NativeZBar.zbar_image_scanner_recycle_image(this.handle, image.Handle);
+        }
+
+        /// <summary>
+        /// 获取最近一次扫描图像的解码结果。
         /// </summary>
         /// <remarks>
-        /// This boolean disposing parameter here ensures that objects with a finalizer is not disposed,
-        /// this is method is invoked from the finalizer. Do overwrite, and call, this method in base
-        /// classes if you use any unmanaged resources.
+        /// 返回的符号都是副本，下次扫描图像后仍然有效。
         /// </remarks>
+        public IEnumerable<Symbol> Results
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return new List<Symbol>(
+                    SymbolEnumerable.FromSet(NativeZBar.zbar_image_scanner_get_results(this.handle)));
+            }
+        }
+
+        /// <summary>
+        /// 请求通过 D-Bus 发送解码结果。
+        /// </summary>
+        /// <returns>请求被接受返回 true；D-Bus 不可用时返回 false。</returns>
+        public bool RequestDbus(bool enabled)
+        {
+            ThrowIfDisposed();
+            return NativeZBar.zbar_image_scanner_request_dbus(this.handle, enabled ? 1 : 0) == 0;
+        }
+
+        private void ThrowIfDisposed()
+        {
+            Interop.ThrowIfDisposed(this.handle, "ImageScanner");
+        }
+
+        // 以下 Dispose 模式参考：
+        // 《框架设计指南（Framework Design Guidelines）》第 2 版第 9.4 节
+
+        /// <summary>
+        /// 释放当前对象。
+        /// </summary>
         /// <param name="disposing">
-        /// A <see cref="System.Boolean"/> False if called from the finalizer, True if called from Dispose.
+        /// 从终结器调用时为 false，从 Dispose 调用时为 true。
         /// </param>
         protected virtual void Dispose(bool disposing)
         {
@@ -122,25 +238,24 @@ namespace zbarcs
             }
             if (disposing)
             {
-                //Release finalizable resources, at the moment none.
+                // 当前没有需要释放的可终结资源。
             }
         }
+
         /// <summary>
-        /// Release resources held by this object
+        /// 释放当前对象持有的资源。
         /// </summary>
         public void Dispose()
         {
-            //We're disposing this object and can release objects that are finalizable
             this.Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         /// <summary>
-        /// Finalize this object
+        /// 终结器。
         /// </summary>
         ~ImageScanner()
         {
-            //Dispose this object, but do NOT release finalizable objects, we don't know in which order
-            //these are release and they may already be finalized.
             this.Dispose(false);
         }
     }

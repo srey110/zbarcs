@@ -1,282 +1,290 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace zbarcs
 {
     /// <summary>
-    /// decoded symbol type. zbar_symbol_type_t
+    /// 解码出的符号类型，对应 zbar_symbol_type_t。
     /// </summary>
     [Flags]
     public enum SymbolType
     {
         /// <summary>
-        /// No symbol decoded
+        /// 未解码出符号。
         /// </summary>
         None = 0,
         /// <summary>
-        /// Intermediate status
+        /// 中间状态。
         /// </summary>
         Partial = 1,
         /// <summary>
-        /// GS1 2-digit add-on
+        /// GS1 两位附加码。
         /// </summary>
         EAN2 = 2,
         /// <summary>
-        /// GS1 5-digit add-on
+        /// GS1 五位附加码。
         /// </summary>
         EAN5 = 5,
         /// <summary>
-        /// EAN-8
+        /// EAN-8。
         /// </summary>
         EAN8 = 8,
         /// <summary>
-        /// UPC-E
+        /// UPC-E。
         /// </summary>
         UPCE = 9,
         /// <summary>
-        /// ISBN-10 (from EAN-13)
+        /// ISBN-10（由 EAN-13 得到）。
         /// </summary>
         ISBN10 = 10,
         /// <summary>
-        /// UPC-A
+        /// UPC-A。
         /// </summary>
         UPCA = 12,
         /// <summary>
-        /// EAN-13
+        /// EAN-13。
         /// </summary>
         EAN13 = 13,
         /// <summary>
-        /// ISBN-13 (from EAN-13)
+        /// ISBN-13（由 EAN-13 得到）。
         /// </summary>
         ISBN13 = 14,
         /// <summary>
-        /// EAN/UPC composite
+        /// EAN/UPC 复合码。
         /// </summary>
         Composite = 15,
         /// <summary>
-        /// Interleaved 2 of 5.
+        /// Interleaved 2 of 5。
         /// </summary>
         I25 = 25,
         /// <summary>
-        /// GS1 DataBar (RSS). @since 0.11
+        /// GS1 DataBar（RSS），自 0.11 起支持。
         /// </summary>
         DataBar = 34,
         /// <summary>
-        /// GS1 DataBar Expanded. @since 0.11
+        /// GS1 DataBar Expanded，自 0.11 起支持。
         /// </summary>
         DataBar_EXP = 35,
         /// <summary>
-        /// Codabar. @since 0.11
+        /// Codabar，自 0.11 起支持。
         /// </summary>
         Codabar = 38,
         /// <summary>
-        /// Code 39.
+        /// Code 39。
         /// </summary>
         CODE39 = 39,
         /// <summary>
-        /// PDF417
+        /// PDF417。
         /// </summary>
         PDF417 = 57,
         /// <summary>
-        /// QR Code
+        /// QR Code。
         /// </summary>
         QRCODE = 64,
         /// <summary>
-        /// SQ Code. @since 0.20.1
+        /// SQ Code，自 0.20.1 起支持。
         /// </summary>
         SQCODE = 80,
         /// <summary>
-        /// Code 93. @since 0.11
+        /// Code 93，自 0.11 起支持。
         /// </summary>
         CODE93 = 93,
         /// <summary>
-        /// Code 128
+        /// Code 128。
         /// </summary>
         CODE128 = 128,
         /// <summary>
-        /// mask for base symbol type
+        /// 基础符号类型掩码。
         /// </summary>
+        Symbol = 0x00ff,
+        /// <summary>
+        /// 基础符号类型掩码。
+        /// </summary>
+        [Obsolete("Use Symbol instead.")]
         Symbole = 0x00ff,
         /// <summary>
-        /// 2-digit add-on flag
+        /// 两位附加码标志。
         /// </summary>
         Addon2 = 0x0200,
         /// <summary>
-        /// 5-digit add-on flag
+        /// 五位附加码标志。
         /// </summary>
         Addon5 = 0x0500,
         /// <summary>
-        /// add-on flag mask
+        /// 附加码标志掩码。
         /// </summary>
         Addon = 0x0700
     }
+
     /// <summary>
-    /// decoded symbol coarse orientation.zbar_orientation_t
+    /// 解码符号的粗略方向，对应 zbar_orientation_t。
     /// </summary>
     public enum Orientation
     {
         /// <summary>
-        /// unable to determine orientation
+        /// 无法确定方向。
         /// </summary>
         Unknown = -1,
         /// <summary>
-        /// upright, read left to right
+        /// 正向，从左到右读取。
         /// </summary>
         Up,
         /// <summary>
-        /// sideways, read top to bottom
+        /// 侧向，从上到下读取。
         /// </summary>
         Right,
         /// <summary>
-        /// upside-down, read right to left
+        /// 倒置，从右到左读取。
         /// </summary>
         Down,
         /// <summary>
-        /// sideways, read bottom to top
+        /// 侧向，从下到上读取。
         /// </summary>
         Left
     }
+
     /// <summary>
-    /// Error codes.zbar_error_t
+    /// 错误码，对应 zbar_error_t。
     /// </summary>
     /// <remarks>
-    /// The ordering matches zbar_error_t from zbar.h
+    /// 枚举顺序与 zbar.h 中的 zbar_error_t 保持一致。
     /// </remarks>
     public enum ZBarError
     {
         /// <summary>
-        /// No error, or zbar is not aware of the error
+        /// 无错误，或 ZBar 未记录错误。
         /// </summary>
         Ok = 0,
         /// <summary>
-        /// Out of memory
+        /// 内存不足。
         /// </summary>
         OutOfMemory,
         /// <summary>
-        /// Internal library error
+        /// 内部库错误。
         /// </summary>
         InternalLibraryError,
         /// <summary>
-        /// Unsupported request
+        /// 不支持的请求。
         /// </summary>
         Unsupported,
         /// <summary>
-        /// Invalid request
+        /// 无效请求。
         /// </summary>
         InvalidRequest,
         /// <summary>
-        /// System error
+        /// 系统错误。
         /// </summary>
         SystemError,
         /// <summary>
-        /// Locking error
+        /// 加锁错误。
         /// </summary>
         LockingError,
         /// <summary>
-        /// All resources busy
+        /// 所有资源均忙。
         /// </summary>
         AllResourcesBusyError,
         /// <summary>
-        /// X11 display error
+        /// X11 显示错误。
         /// </summary>
         X11DisplayError,
         /// <summary>
-        /// X11 Protocol error
+        /// X11 协议错误。
         /// </summary>
         X11ProtocolError,
         /// <summary>
-        /// Output window closed
+        /// 输出窗口已关闭。
         /// </summary>
         OutputWindowClosed,
         /// <summary>
-        /// Windows system error
+        /// Windows 系统错误。
         /// </summary>
-        WindowsAPIError
+        WindowsAPIError,
+        /// <summary>
+        /// 错误码数量。
+        /// </summary>
+        Num
     }
+
     /// <summary>
-    /// decoder configuration options.zbar_config_t
+    /// 解码器配置项，对应 zbar_config_t。
     /// </summary>
     public enum Config
     {
         /// <summary>
-        /// Enable symbology/feature
+        /// 启用符号类型/功能。
         /// </summary>
         Enable = 0,
         /// <summary>
-        /// Enable check digit when optional
+        /// 可选时启用校验位。
         /// </summary>
         AddCheck,
         /// <summary>
-        /// Return check digit when present
+        /// 存在校验位时输出校验位。
         /// </summary>
         EmitCheck,
         /// <summary>
-        /// Enable full ASCII character set
+        /// 启用完整 ASCII 字符集。
         /// </summary>
         ASCII,
         /// <summary>
-        /// don't convert binary data to text
+        /// 不把二进制数据转换为文本。
         /// </summary>
         Binary,
         /// <summary>
-        /// Number of boolean decoder configs
+        /// 布尔型解码器配置项数量。
         /// </summary>
         Num,
         /// <summary>
-        /// Minimum data length for valid decode
+        /// 有效解码的最小数据长度。
         /// </summary>
         MinimumLength = 0x20,
         /// <summary>
-        /// Maximum data length for valid decode
+        /// 有效解码的最大数据长度。
         /// </summary>
         MaximumLength,
         /// <summary>
-        /// required video consistency frames
+        /// 视频一致性所需帧数。
         /// </summary>
         Uncertainty = 0x40,
         /// <summary>
-        /// Enable scanner to collect position data
+        /// 启用扫描器位置数据收集。
         /// </summary>
         Position = 0x80,
         /// <summary>
-        /// if fails to decode, test inverted
+        /// 解码失败时尝试反色图像。
         /// </summary>
         TestInverted,
         /// <summary>
-        /// Image scanner vertical scan density
+        /// 图像扫描器垂直扫描密度。
         /// </summary>
         XDensity = 0x100,
         /// <summary>
-        /// Image scanner horizontical scan density
+        /// 图像扫描器水平扫描密度。
         /// </summary>
         YDensity
     }
+
     /// <summary>
-    /// decoder symbology modifier flags.zbar_modifier_t
+    /// 解码器符号类型修饰符标志，对应 zbar_modifier_t。
     /// </summary>
     public enum Modifier
     {
         /// <summary>
-        /// barcode tagged as GS1 (EAN.UCC) reserved
-        ///(eg, FNC1 before first data character).
-        ///data may be parsed as a sequence of GS1 AIs
+        /// 条码带有 GS1（EAN.UCC）保留标记，例如第一个数据字符前的 FNC1。
+        /// 数据可以按 GS1 AI 序列解析。
         /// </summary>
         GS1 = 0,
         /// <summary>
-        /// barcode tagged as AIM reserved
-        ///(eg, FNC1 after first character or digit pair)
+        /// 条码带有 AIM 保留标记，例如第一个字符或数字对之后的 FNC1。
         /// </summary>
         AIM,
         /// <summary>
-        /// number of modifiers
+        /// 修饰符数量。
         /// </summary>
         NUM
     }
+
     /// <summary>
-    /// video_control_type_t
+    /// 视频控制项类型，对应 video_control_type_t。
     /// </summary>
     public enum ControlType
     {
@@ -287,14 +295,18 @@ namespace zbarcs
         String,
         Boolean
     }
+
+    /// <summary>
+    /// 扫描元素颜色。
+    /// </summary>
     public enum Color
     {
         /// <summary>
-        /// light area or space between bars
+        /// 亮区或条之间的空白。
         /// </summary>
         Space = 0,
         /// <summary>
-        /// dark area or colored bar segment
+        /// 暗区或彩色条段。
         /// </summary>
         Bar,
     }
