@@ -30,7 +30,7 @@ jobs:
 
   Ubuntu_Gtk2:
     name: Ubuntu with Gtk2
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: prepare
@@ -70,7 +70,7 @@ jobs:
 
   Mingw_w64_VfW:
     name: Mingw-w64 VfW
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: prepare
@@ -110,7 +110,7 @@ jobs:
 
   Mingw_w64_DShow:
     name: Mingw-w64 DShow
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: prepare
