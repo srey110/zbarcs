@@ -143,68 +143,6 @@ namespace zbarcs
     }
 
     /// <summary>
-    /// 错误码，对应 zbar_error_t。
-    /// </summary>
-    /// <remarks>
-    /// 枚举顺序与 zbar.h 中的 zbar_error_t 保持一致。
-    /// </remarks>
-    public enum ZBarError
-    {
-        /// <summary>
-        /// 无错误，或 ZBar 未记录错误。
-        /// </summary>
-        Ok = 0,
-        /// <summary>
-        /// 内存不足。
-        /// </summary>
-        OutOfMemory,
-        /// <summary>
-        /// 内部库错误。
-        /// </summary>
-        InternalLibraryError,
-        /// <summary>
-        /// 不支持的请求。
-        /// </summary>
-        Unsupported,
-        /// <summary>
-        /// 无效请求。
-        /// </summary>
-        InvalidRequest,
-        /// <summary>
-        /// 系统错误。
-        /// </summary>
-        SystemError,
-        /// <summary>
-        /// 加锁错误。
-        /// </summary>
-        LockingError,
-        /// <summary>
-        /// 所有资源均忙。
-        /// </summary>
-        AllResourcesBusyError,
-        /// <summary>
-        /// X11 显示错误。
-        /// </summary>
-        X11DisplayError,
-        /// <summary>
-        /// X11 协议错误。
-        /// </summary>
-        X11ProtocolError,
-        /// <summary>
-        /// 输出窗口已关闭。
-        /// </summary>
-        OutputWindowClosed,
-        /// <summary>
-        /// Windows 系统错误。
-        /// </summary>
-        WindowsAPIError,
-        /// <summary>
-        /// 错误码数量。
-        /// </summary>
-        Num
-    }
-
-    /// <summary>
     /// 解码器配置项，对应 zbar_config_t。
     /// </summary>
     public enum Config

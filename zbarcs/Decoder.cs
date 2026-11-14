@@ -7,21 +7,30 @@ namespace zbarcs
     /// </summary>
     public class Decoder : IDisposable
     {
-        private IntPtr handle = IntPtr.Zero;
+        private readonly SafeZBarHandle handle;
 
         /// <summary>
         /// 创建新的解码器。
         /// </summary>
         public Decoder()
         {
-            this.handle = NativeZBar.zbar_decoder_create();
-            if (this.handle == IntPtr.Zero)
+            IntPtr handle = NativeZBar.zbar_decoder_create();
+            if (handle == IntPtr.Zero)
             {
                 throw new OutOfMemoryException("Failed to create a ZBar decoder.");
             }
+            try
+            {
+                this.handle = new SafeZBarHandle(handle, NativeHandleType.Decoder);
+            }
+            catch
+            {
+                NativeZBar.zbar_decoder_destroy(handle);
+                throw;
+            }
         }
 
-        internal IntPtr Handle
+        internal SafeZBarHandle Handle
         {
             get
             {
@@ -182,9 +191,22 @@ namespace zbarcs
             get
             {
                 ThrowIfDisposed();
-                IntPtr pData = NativeZBar.zbar_decoder_get_data(this.handle);
-                uint length = NativeZBar.zbar_decoder_get_data_length(this.handle);
-                return Interop.CopyBytes(pData, length);
+                SafeZBarHandle handle = this.handle;
+                bool handleRefAdded = false;
+                handle.DangerousAddRef(ref handleRefAdded);
+                try
+                {
+                    IntPtr pData = NativeZBar.zbar_decoder_get_data(handle);
+                    uint length = NativeZBar.zbar_decoder_get_data_length(handle);
+                    return Interop.CopyBytes(pData, length);
+                }
+                finally
+                {
+                    if (handleRefAdded)
+                    {
+                        handle.DangerousRelease();
+                    }
+                }
             }
         }
 
@@ -263,10 +285,9 @@ namespace zbarcs
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
-            if (this.handle != IntPtr.Zero)
+            if (this.handle != null)
             {
-                NativeZBar.zbar_decoder_destroy(this.handle);
-                this.handle = IntPtr.Zero;
+                this.handle.Dispose();
             }
         }
 
@@ -277,14 +298,6 @@ namespace zbarcs
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// 终结器。
-        /// </summary>
-        ~Decoder()
-        {
-            this.Dispose(false);
         }
     }
 }

@@ -64,9 +64,9 @@ namespace zbarcs
         /// <summary>
         /// 对象已释放时抛出 <see cref="ObjectDisposedException"/>。
         /// </summary>
-        internal static void ThrowIfDisposed(IntPtr handle, string objectName)
+        internal static void ThrowIfDisposed(SafeZBarHandle handle, string objectName)
         {
-            if (handle == IntPtr.Zero)
+            if (handle == null || handle.IsClosed || handle.IsInvalid)
             {
                 throw new ObjectDisposedException(objectName);
             }

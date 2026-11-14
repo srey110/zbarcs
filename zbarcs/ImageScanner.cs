@@ -8,7 +8,7 @@ namespace zbarcs
     /// </summary>
     public class ImageScanner : IDisposable
     {
-        private IntPtr handle = IntPtr.Zero;
+        private readonly SafeZBarHandle handle;
         private bool cache = false;
 
         /// <summary>
@@ -16,10 +16,19 @@ namespace zbarcs
         /// </summary>
         public ImageScanner()
         {
-            this.handle = NativeZBar.zbar_image_scanner_create();
-            if (this.handle == IntPtr.Zero)
+            IntPtr handle = NativeZBar.zbar_image_scanner_create();
+            if (handle == IntPtr.Zero)
             {
                 throw new OutOfMemoryException("Failed to create an underlying image scanner.");
+            }
+            try
+            {
+                this.handle = new SafeZBarHandle(handle, NativeHandleType.ImageScanner);
+            }
+            catch
+            {
+                NativeZBar.zbar_image_scanner_destroy(handle);
+                throw;
             }
         }
 
@@ -200,8 +209,21 @@ namespace zbarcs
             get
             {
                 ThrowIfDisposed();
-                return new List<Symbol>(
-                    SymbolEnumerable.FromSet(NativeZBar.zbar_image_scanner_get_results(this.handle)));
+                SafeZBarHandle handle = this.handle;
+                bool handleRefAdded = false;
+                handle.DangerousAddRef(ref handleRefAdded);
+                try
+                {
+                    return new List<Symbol>(
+                        SymbolEnumerable.FromSet(NativeZBar.zbar_image_scanner_get_results(handle)));
+                }
+                finally
+                {
+                    if (handleRefAdded)
+                    {
+                        handle.DangerousRelease();
+                    }
+                }
             }
         }
 
@@ -231,10 +253,9 @@ namespace zbarcs
         /// </param>
         protected virtual void Dispose(bool disposing)
         {
-            if (this.handle != IntPtr.Zero)
+            if (this.handle != null)
             {
-                NativeZBar.zbar_image_scanner_destroy(this.handle);
-                this.handle = IntPtr.Zero;
+                this.handle.Dispose();
             }
             if (disposing)
             {
@@ -249,14 +270,6 @@ namespace zbarcs
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// 终结器。
-        /// </summary>
-        ~ImageScanner()
-        {
-            this.Dispose(false);
         }
     }
 }

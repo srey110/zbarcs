@@ -10,10 +10,9 @@ namespace zbarcs
     {
         private const string DllName = "libzbar-0";
 
-        // zbar 的 fourcc 和图像数据长度使用 unsigned long。本项目面向
-        // Windows x64，该平台上 unsigned long 为 32 位，因此使用 uint 作为
-        // 对应的托管类型；在 LP64 平台上这些值也能放入 32 位，.NET 会把
-        // 参数扩展到原生寄存器宽度。
+        // This binding targets Windows x64, where C unsigned long is 32 bits.
+        // The uint mappings below are not valid for LP64 platforms, where image
+        // data lengths may exceed 32 bits.
         #region 全局接口
         /// <summary>
         /// 获取运行时库版本信息。
@@ -90,19 +89,6 @@ namespace zbarcs
         public static extern unsafe int zbar_parse_config(string config_string, int* symbology, int* config, int* value);
         #endregion 全局接口
 
-        #region 错误接口
-        /// <summary>
-        /// 获取原生对象的错误描述字符串。
-        /// </summary>
-        [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr _zbar_error_string(IntPtr obj, int verbosity);
-
-        /// <summary>
-        /// 获取原生对象的错误码。
-        /// </summary>
-        [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int _zbar_get_error_code(IntPtr obj);
-        #endregion 错误接口
 
         #region 符号接口
         /// <summary>
@@ -324,7 +310,7 @@ namespace zbarcs
         /// </returns>
         /// <remarks>受格式约束，转换后的尺寸可能向上取整。</remarks>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr zbar_image_convert(IntPtr image, uint format);
+        public static extern IntPtr zbar_image_convert(SafeZBarHandle image, uint format);
 
         /// <summary>
         /// 转换图像格式并按指定尺寸裁剪/填充。
@@ -335,40 +321,40 @@ namespace zbarcs
         /// </remarks>
         /// <returns>转换并调整尺寸后的新图像。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr zbar_image_convert_resize(IntPtr image, uint format, uint width, uint height);
+        public static extern IntPtr zbar_image_convert_resize(SafeZBarHandle image, uint format, uint width, uint height);
 
         /// <summary>
         /// 获取图像格式。
         /// </summary>
         /// <returns>描述采样数据格式的 FourCC。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint zbar_image_get_format(IntPtr image);
+        public static extern uint zbar_image_get_format(SafeZBarHandle image);
 
         /// <summary>
         /// 获取与图像关联的“序列号”（页号/帧号）。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint zbar_image_get_sequence(IntPtr image);
+        public static extern uint zbar_image_get_sequence(SafeZBarHandle image);
 
         /// <summary>
         /// 获取图像宽度。
         /// </summary>
         /// <returns>采样列数。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint zbar_image_get_width(IntPtr image);
+        public static extern uint zbar_image_get_width(SafeZBarHandle image);
 
         /// <summary>
         /// 获取图像高度。
         /// </summary>
         /// <returns>采样行数。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint zbar_image_get_height(IntPtr image);
+        public static extern uint zbar_image_get_height(SafeZBarHandle image);
 
         /// <summary>
         /// 获取图像宽高。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern unsafe void zbar_image_get_size(IntPtr image, uint* width, uint* height);
+        public static extern unsafe void zbar_image_get_size(SafeZBarHandle image, uint* width, uint* height);
 
         /// <summary>
         /// 获取裁剪矩形。
@@ -377,7 +363,7 @@ namespace zbarcs
         /// 返回将要扫描的轴对齐矩形的左上角坐标和尺寸，默认为整幅图像。
         /// </remarks>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern unsafe void zbar_image_get_crop(IntPtr image, uint* x, uint* y, uint* width, uint* height);
+        public static extern unsafe void zbar_image_get_crop(SafeZBarHandle image, uint* x, uint* y, uint* width, uint* height);
 
         /// <summary>
         /// 获取图像采样数据指针。
@@ -386,11 +372,14 @@ namespace zbarcs
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern IntPtr zbar_image_get_data(IntPtr image);
 
+        [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true, EntryPoint = "zbar_image_get_data")]
+        public static extern IntPtr zbar_image_get_data(SafeZBarHandle image);
+
         /// <summary>
         /// 获取图像数据长度。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint zbar_image_get_data_length(IntPtr img);
+        public static extern uint zbar_image_get_data_length(SafeZBarHandle img);
 
         /// <summary>
         /// 获取解码结果。
@@ -400,7 +389,7 @@ namespace zbarcs
         /// （zbar_symbol_set_t）。
         /// </returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr zbar_image_get_symbols(IntPtr image);
+        public static extern IntPtr zbar_image_get_symbols(SafeZBarHandle image);
 
         /// <summary>
         /// 关联指定符号集合到图像，替换已有结果。
@@ -410,34 +399,34 @@ namespace zbarcs
         /// zbar_image_scanner_recycle_image。
         /// </remarks>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_image_set_symbols(IntPtr image, IntPtr symbols);
+        public static extern void zbar_image_set_symbols(SafeZBarHandle image, IntPtr symbols);
 
         /// <summary>
         /// 获取图像的第一个解码符号。
         /// </summary>
         /// <returns>第一个符号；没有结果时返回 NULL。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr zbar_image_first_symbol(IntPtr image);
+        public static extern IntPtr zbar_image_first_symbol(SafeZBarHandle image);
 
         /// <summary>
         /// 设置图像采样数据的 FourCC 格式码。
         /// </summary>
         /// <remarks>该操作不转换数据；如需转换请调用 zbar_image_convert()。</remarks>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_image_set_format(IntPtr image, uint format);
+        public static extern void zbar_image_set_format(SafeZBarHandle image, uint format);
 
         /// <summary>
         /// 设置与图像关联的“序列号”（页号/帧号）。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_image_set_sequence(IntPtr image, uint sequence_num);
+        public static extern void zbar_image_set_sequence(SafeZBarHandle image, uint sequence_num);
 
         /// <summary>
         /// 设置图像像素尺寸。
         /// </summary>
         /// <remarks>该操作不影响图像数据。</remarks>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_image_set_size(IntPtr image, uint width, uint height);
+        public static extern void zbar_image_set_size(SafeZBarHandle image, uint width, uint height);
 
         /// <summary>
         /// 设置要扫描的图像矩形区域。
@@ -447,7 +436,7 @@ namespace zbarcs
         /// 整幅图像。
         /// </remarks>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_image_set_crop(IntPtr image, uint x, uint y, uint width, uint height);
+        public static extern void zbar_image_set_crop(SafeZBarHandle image, uint x, uint y, uint width, uint height);
 
         /// <summary>
         /// 图像数据清理回调。
@@ -463,25 +452,25 @@ namespace zbarcs
         /// 应用传入的图像数据。
         /// </remarks>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_image_set_data(IntPtr image, IntPtr data, uint data_byte_length, zbar_image_cleanup_handler cleanup_handler);
+        public static extern void zbar_image_set_data(SafeZBarHandle image, IntPtr data, uint data_byte_length, zbar_image_cleanup_handler cleanup_handler);
 
         /// <summary>
         /// 内置清理回调：把图像数据缓冲区交给 free()。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_image_free_data(IntPtr image);
+        public static extern void zbar_image_free_data(SafeZBarHandle image);
 
         /// <summary>
         /// 关联用户自定义数据到图像。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_image_set_userdata(IntPtr image, IntPtr userdata);
+        public static extern void zbar_image_set_userdata(SafeZBarHandle image, IntPtr userdata);
 
         /// <summary>
         /// 获取图像关联的用户自定义数据。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr zbar_image_get_userdata(IntPtr image);
+        public static extern IntPtr zbar_image_get_userdata(SafeZBarHandle image);
 
         /// <summary>
         /// 把原始图像数据导出到文件，用于调试。
@@ -492,7 +481,7 @@ namespace zbarcs
         /// </param>
         /// <returns>成功返回 0。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_image_write(IntPtr image, string filebase);
+        public static extern int zbar_image_write(SafeZBarHandle image, string filebase);
         #endregion 图像接口
 
         #region 图像扫描器接口
@@ -522,14 +511,14 @@ namespace zbarcs
         /// </remarks>
         /// <returns>之前注册的回调。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr zbar_image_scanner_set_data_handler(IntPtr scanner, zbar_image_data_handler handler, IntPtr userdata);
+        public static extern IntPtr zbar_image_scanner_set_data_handler(SafeZBarHandle scanner, zbar_image_data_handler handler, IntPtr userdata);
 
         /// <summary>
         /// 请求通过 D-Bus 发送解码结果。
         /// </summary>
         /// <remarks>参见 zbar_processor_parse_config()。</remarks>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_image_scanner_request_dbus(IntPtr scanner, int req_dbus_enabled);
+        public static extern int zbar_image_scanner_request_dbus(SafeZBarHandle scanner, int req_dbus_enabled);
 
         /// <summary>
         /// 为指定符号类型（传 0 表示全部）设置配置值。
@@ -540,7 +529,7 @@ namespace zbarcs
         /// 成功返回 0；失败返回非 0（配置不适用于该符号类型，或值越界）。
         /// </returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_image_scanner_set_config(IntPtr scanner, int symbology, int config, int value);
+        public static extern int zbar_image_scanner_set_config(SafeZBarHandle scanner, int symbology, int config, int value);
 
         /// <summary>
         /// 获取指定符号类型的配置值。
@@ -549,7 +538,7 @@ namespace zbarcs
         /// <param name="config">配置项（Config）。</param>
         /// <returns>成功返回 0，并在 value 中写入配置值。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern unsafe int zbar_image_scanner_get_config(IntPtr scanner, int symbology, int config, int* value);
+        public static extern unsafe int zbar_image_scanner_get_config(SafeZBarHandle scanner, int symbology, int config, int* value);
 
         /// <summary>
         /// 启用或禁用帧间结果缓存（默认禁用）。
@@ -559,7 +548,7 @@ namespace zbarcs
         /// 一致性检查和迟滞；该接口也会清空缓存。
         /// </remarks>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_image_scanner_enable_cache(IntPtr scanner, int enable);
+        public static extern void zbar_image_scanner_enable_cache(SafeZBarHandle scanner, int enable);
 
         /// <summary>
         /// 从图像扫描器和指定图像中移除之前解码出的结果。
@@ -569,7 +558,7 @@ namespace zbarcs
         /// 供后续解码复用。
         /// </remarks>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_image_scanner_recycle_image(IntPtr scanner, IntPtr image);
+        public static extern void zbar_image_scanner_recycle_image(SafeZBarHandle scanner, SafeZBarHandle image);
 
         /// <summary>
         /// 获取最近一次扫描图像的解码结果。
@@ -580,7 +569,7 @@ namespace zbarcs
         /// </remarks>
         /// <returns>zbar_symbol_set_t。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr zbar_image_scanner_get_results(IntPtr scanner);
+        public static extern IntPtr zbar_image_scanner_get_results(SafeZBarHandle scanner);
 
         /// <summary>
         /// 扫描指定图像中的符号。图像格式必须是 "Y800" 或 "GRAY"。
@@ -589,7 +578,7 @@ namespace zbarcs
         /// 成功解码出符号时大于 0；未找到符号返回 0；发生错误返回 -1。
         /// </returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_scan_image(IntPtr scanner, IntPtr image);
+        public static extern int zbar_scan_image(SafeZBarHandle scanner, SafeZBarHandle image);
         #endregion 图像扫描器接口
 
         #region 解码器接口
@@ -612,7 +601,7 @@ namespace zbarcs
         /// <param name="symbology">符号类型（SymbolType）。</param>
         /// <param name="config">配置项（Config）。</param>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_decoder_set_config(IntPtr decoder, int symbology, int config, int value);
+        public static extern int zbar_decoder_set_config(SafeZBarHandle decoder, int symbology, int config, int value);
 
         /// <summary>
         /// 获取指定符号类型的配置值。
@@ -621,7 +610,7 @@ namespace zbarcs
         /// <param name="config">配置项（Config）。</param>
         /// <returns>成功返回 0。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern unsafe int zbar_decoder_get_config(IntPtr decoder, int symbology, int config, int* value);
+        public static extern unsafe int zbar_decoder_get_config(SafeZBarHandle decoder, int symbology, int config, int* value);
 
         /// <summary>
         /// 获取指定符号类型的布尔配置位掩码。
@@ -629,13 +618,13 @@ namespace zbarcs
         /// <param name="symbology">符号类型（SymbolType）。</param>
         /// <returns>当前已启用配置的位掩码。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint zbar_decoder_get_configs(IntPtr decoder, int symbology);
+        public static extern uint zbar_decoder_get_configs(SafeZBarHandle decoder, int symbology);
 
         /// <summary>
         /// 清除解码器全部状态，并冲刷所有未完成的符号。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_decoder_reset(IntPtr decoder);
+        public static extern void zbar_decoder_reset(SafeZBarHandle decoder);
 
         /// <summary>
         /// 标记新一轮扫描开始。
@@ -645,7 +634,7 @@ namespace zbarcs
         /// 状态保留。
         /// </remarks>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_decoder_new_scan(IntPtr decoder);
+        public static extern void zbar_decoder_new_scan(SafeZBarHandle decoder);
 
         /// <summary>
         /// 处理输入流中的下一个条/空宽度。
@@ -660,49 +649,49 @@ namespace zbarcs
         /// NONE（0）。
         /// </returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_decode_width(IntPtr decoder, uint width);
+        public static extern int zbar_decode_width(SafeZBarHandle decoder, uint width);
 
         /// <summary>
         /// 获取下一个传给 zbar_decode_width() 的元素的颜色。
         /// </summary>
         /// <returns>zbar_color_t（Color）。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_decoder_get_color(IntPtr decoder);
+        public static extern int zbar_decoder_get_color(SafeZBarHandle decoder);
 
         /// <summary>
         /// 获取最近一次解码出的数据。
         /// </summary>
         /// <returns>数据字符串；没有新数据时返回 NULL。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr zbar_decoder_get_data(IntPtr decoder);
+        public static extern IntPtr zbar_decoder_get_data(SafeZBarHandle decoder);
 
         /// <summary>
         /// 获取解码数据的长度。
         /// </summary>
         /// <returns>解码数据的字节长度；没有新数据时返回 0。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint zbar_decoder_get_data_length(IntPtr decoder);
+        public static extern uint zbar_decoder_get_data_length(SafeZBarHandle decoder);
 
         /// <summary>
         /// 获取最近一次解码出的符号类型。
         /// </summary>
         /// <returns>zbar_symbol_type_t（SymbolType）。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_decoder_get_type(IntPtr decoder);
+        public static extern int zbar_decoder_get_type(SafeZBarHandle decoder);
 
         /// <summary>
         /// 获取最近一次解码符号的修饰符位掩码。
         /// </summary>
         /// <returns>解码期间检测到的特征位掩码。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint zbar_decoder_get_modifiers(IntPtr decoder);
+        public static extern uint zbar_decoder_get_modifiers(SafeZBarHandle decoder);
 
         /// <summary>
         /// 获取最近一次解码方向。
         /// </summary>
         /// <returns>1 表示正向，-1 表示反向，0 表示未知或不适用。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_decoder_get_direction(IntPtr decoder);
+        public static extern int zbar_decoder_get_direction(SafeZBarHandle decoder);
 
         /// <summary>
         /// 解码器数据回调：刚解码出新数据时调用。
@@ -719,19 +708,19 @@ namespace zbarcs
         /// </remarks>
         /// <returns>之前注册的回调。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr zbar_decoder_set_handler(IntPtr decoder, zbar_decoder_handler handler);
+        public static extern IntPtr zbar_decoder_set_handler(SafeZBarHandle decoder, zbar_decoder_handler handler);
 
         /// <summary>
         /// 关联用户自定义数据到解码器。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void zbar_decoder_set_userdata(IntPtr decoder, IntPtr userdata);
+        public static extern void zbar_decoder_set_userdata(SafeZBarHandle decoder, IntPtr userdata);
 
         /// <summary>
         /// 获取解码器关联的用户自定义数据。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr zbar_decoder_get_userdata(IntPtr decoder);
+        public static extern IntPtr zbar_decoder_get_userdata(SafeZBarHandle decoder);
         #endregion 解码器接口
 
         #region 扫描器接口
@@ -740,7 +729,7 @@ namespace zbarcs
         /// </summary>
         /// <param name="decoder">要关联的解码器；不关联时传 IntPtr.Zero。</param>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern IntPtr zbar_scanner_create(IntPtr decoder);
+        public static extern IntPtr zbar_scanner_create(SafeZBarHandle decoder);
 
         /// <summary>
         /// 销毁扫描器。
@@ -753,7 +742,7 @@ namespace zbarcs
         /// </summary>
         /// <returns>zbar_symbol_type_t（SymbolType）。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_scanner_reset(IntPtr scanner);
+        public static extern int zbar_scanner_reset(SafeZBarHandle scanner);
 
         /// <summary>
         /// 标记新一轮扫描开始，并把颜色重置为 ZBAR_SPACE。
@@ -765,7 +754,7 @@ namespace zbarcs
         /// </remarks>
         /// <returns>zbar_symbol_type_t（SymbolType）。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_scanner_new_scan(IntPtr scanner);
+        public static extern int zbar_scanner_new_scan(SafeZBarHandle scanner);
 
         /// <summary>
         /// 冲刷扫描器处理管线，把当前位置强制作为扫描边界。
@@ -776,7 +765,7 @@ namespace zbarcs
         /// </remarks>
         /// <returns>zbar_symbol_type_t（SymbolType）。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_scanner_flush(IntPtr scanner);
+        public static extern int zbar_scanner_flush(SafeZBarHandle scanner);
 
         /// <summary>
         /// 处理下一个采样强度值，强度使用任意相对单位。
@@ -787,26 +776,26 @@ namespace zbarcs
         /// 没有新边缘时返回 NONE（0）。
         /// </returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_scan_y(IntPtr scanner, int y);
+        public static extern int zbar_scan_y(SafeZBarHandle scanner, int y);
 
         /// <summary>
         /// 获取最近一次扫描的宽度。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint zbar_scanner_get_width(IntPtr scanner);
+        public static extern uint zbar_scanner_get_width(SafeZBarHandle scanner);
 
         /// <summary>
         /// 获取最近一条边缘的采样位置。
         /// </summary>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint zbar_scanner_get_edge(IntPtr scn, uint offset, int prec);
+        public static extern uint zbar_scanner_get_edge(SafeZBarHandle scn, uint offset, int prec);
 
         /// <summary>
         /// 获取最近一次扫描的颜色。
         /// </summary>
         /// <returns>zbar_color_t（Color）。</returns>
         [DllImport(DllName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int zbar_scanner_get_color(IntPtr scanner);
+        public static extern int zbar_scanner_get_color(SafeZBarHandle scanner);
         #endregion 扫描器接口
     }
 }

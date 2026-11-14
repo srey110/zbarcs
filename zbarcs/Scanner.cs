@@ -8,7 +8,7 @@ namespace zbarcs
     /// </summary>
     public class Scanner : IDisposable
     {
-        private IntPtr handle = IntPtr.Zero;
+        private readonly SafeZBarHandle handle;
         private readonly Decoder decoder;
 
         /// <summary>
@@ -27,11 +27,41 @@ namespace zbarcs
         public Scanner(Decoder decoder)
         {
             this.decoder = decoder;
-            IntPtr decoderHandle = decoder == null ? IntPtr.Zero : decoder.Handle;
-            this.handle = NativeZBar.zbar_scanner_create(decoderHandle);
-            if (this.handle == IntPtr.Zero)
+            SafeZBarHandle decoderHandle = decoder == null ? null : decoder.Handle;
+            bool decoderRefAdded = false;
+            if (decoderHandle != null)
             {
-                throw new OutOfMemoryException("Failed to create a ZBar scanner.");
+                decoderHandle.DangerousAddRef(ref decoderRefAdded);
+            }
+
+            IntPtr scanner = IntPtr.Zero;
+            bool keepDecoderRef = false;
+            try
+            {
+                scanner = NativeZBar.zbar_scanner_create(decoderHandle);
+                if (scanner == IntPtr.Zero)
+                {
+                    throw new OutOfMemoryException("Failed to create a ZBar scanner.");
+                }
+
+                this.handle = new SafeZBarHandle(
+                    scanner,
+                    NativeHandleType.Scanner,
+                    decoderRefAdded ? decoderHandle : null,
+                    decoderRefAdded);
+                scanner = IntPtr.Zero;
+                keepDecoderRef = decoderRefAdded;
+            }
+            finally
+            {
+                if (scanner != IntPtr.Zero)
+                {
+                    NativeZBar.zbar_scanner_destroy(scanner);
+                }
+                if (decoderRefAdded && !keepDecoderRef)
+                {
+                    decoderHandle.DangerousRelease();
+                }
             }
         }
 
@@ -136,10 +166,9 @@ namespace zbarcs
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
-            if (this.handle != IntPtr.Zero)
+            if (this.handle != null)
             {
-                NativeZBar.zbar_scanner_destroy(this.handle);
-                this.handle = IntPtr.Zero;
+                this.handle.Dispose();
             }
         }
 
@@ -150,14 +179,6 @@ namespace zbarcs
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// 终结器。
-        /// </summary>
-        ~Scanner()
-        {
-            this.Dispose(false);
         }
     }
 }

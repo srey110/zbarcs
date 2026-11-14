@@ -16,25 +16,28 @@ namespace zbarcs
         /// <summary>
         /// 非托管 ZBar 图像句柄。
         /// </summary>
-        private IntPtr handle = IntPtr.Zero;
+        private readonly SafeZBarHandle handle;
 
         /// <summary>
         /// 从非托管图像指针创建托管包装。
         /// </summary>
         /// <remarks>该资源由当前 Image 实例负责管理。</remarks>
         /// <param name="handle">非托管 ZBar 图像指针。</param>
-        /// <param name="incRef">是否增加引用计数。</param>
-        internal Image(IntPtr handle, bool incRef)
+        internal Image(IntPtr handle)
         {
             if (handle == IntPtr.Zero)
             {
                 throw new ArgumentException("Can't create an image from a null pointer.", "handle");
             }
 
-            this.handle = handle;
-            if (incRef)
+            try
             {
-                NativeZBar.zbar_image_ref(this.handle, 1);
+                this.handle = new SafeZBarHandle(handle, NativeHandleType.Image);
+            }
+            catch
+            {
+                NativeZBar.zbar_image_destroy(handle);
+                throw;
             }
         }
 
@@ -46,10 +49,19 @@ namespace zbarcs
         /// </remarks>
         public Image()
         {
-            this.handle = NativeZBar.zbar_image_create();
-            if (this.handle == IntPtr.Zero)
+            IntPtr handle = NativeZBar.zbar_image_create();
+            if (handle == IntPtr.Zero)
             {
                 throw new OutOfMemoryException("Failed to create a new ZBar image.");
+            }
+            try
+            {
+                this.handle = new SafeZBarHandle(handle, NativeHandleType.Image);
+            }
+            catch
+            {
+                NativeZBar.zbar_image_destroy(handle);
+                throw;
             }
         }
 
@@ -116,7 +128,7 @@ namespace zbarcs
         /// <summary>
         /// 获取非托管图像资源指针。
         /// </summary>
-        internal IntPtr Handle
+        internal SafeZBarHandle Handle
         {
             get
             {
@@ -342,18 +354,31 @@ namespace zbarcs
             get
             {
                 ThrowIfDisposed();
-                uint length = NativeZBar.zbar_image_get_data_length(this.handle);
-                if (length == 0)
+                SafeZBarHandle handle = this.handle;
+                bool handleRefAdded = false;
+                handle.DangerousAddRef(ref handleRefAdded);
+                try
                 {
-                    return new byte[0];
-                }
+                    uint length = NativeZBar.zbar_image_get_data_length(handle);
+                    if (length == 0)
+                    {
+                        return new byte[0];
+                    }
 
-                IntPtr pData = NativeZBar.zbar_image_get_data(this.handle);
-                if (pData == IntPtr.Zero)
-                {
-                    throw new InvalidOperationException("The image data pointer is null.");
+                    IntPtr pData = NativeZBar.zbar_image_get_data(handle);
+                    if (pData == IntPtr.Zero)
+                    {
+                        throw new InvalidOperationException("The image data pointer is null.");
+                    }
+                    return Interop.CopyBytes(pData, length);
                 }
-                return Interop.CopyBytes(pData, length);
+                finally
+                {
+                    if (handleRefAdded)
+                    {
+                        handle.DangerousRelease();
+                    }
+                }
             }
             set
             {
@@ -437,8 +462,21 @@ namespace zbarcs
             get
             {
                 ThrowIfDisposed();
-                return new List<Symbol>(
-                    SymbolEnumerable.FromSet(NativeZBar.zbar_image_get_symbols(this.handle)));
+                SafeZBarHandle handle = this.handle;
+                bool handleRefAdded = false;
+                handle.DangerousAddRef(ref handleRefAdded);
+                try
+                {
+                    return new List<Symbol>(
+                        SymbolEnumerable.FromSet(NativeZBar.zbar_image_get_symbols(handle)));
+                }
+                finally
+                {
+                    if (handleRefAdded)
+                    {
+                        handle.DangerousRelease();
+                    }
+                }
             }
         }
 
@@ -466,7 +504,7 @@ namespace zbarcs
             {
                 throw new NotSupportedException("The image could not be converted to the requested format.");
             }
-            return new Image(img, false);
+            return this.WrapConverted(img);
         }
 
         /// <summary>
@@ -483,17 +521,32 @@ namespace zbarcs
             {
                 throw new InvalidOperationException("The image has no data to convert.");
             }
-            if (format == this.Format && (width != this.Width || height != this.Height))
-            {
-                throw new NotSupportedException(
-                    "ZBar cannot resize an image without changing its format.");
-            }
             IntPtr img = NativeZBar.zbar_image_convert_resize(this.handle, format, width, height);
             if (img == IntPtr.Zero)
             {
                 throw new NotSupportedException("The image could not be converted to the requested format and size.");
             }
-            return new Image(img, false);
+            return this.WrapConverted(img);
+        }
+
+        // 格式兼容且尺寸不变时，zbar 的 convert_copy 只让新图引用原图缓冲区；
+        // 原图之后再设置 Data 会释放该缓冲区，所以这里复制一份让新图独立。
+        private Image WrapConverted(IntPtr img)
+        {
+            Image result = new Image(img);
+            try
+            {
+                if (NativeZBar.zbar_image_get_data(img) == NativeZBar.zbar_image_get_data(this.handle))
+                {
+                    result.Data = result.Data;
+                }
+                return result;
+            }
+            catch
+            {
+                result.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -613,10 +666,9 @@ namespace zbarcs
         /// </param>
         protected virtual void Dispose(bool disposing)
         {
-            if (this.handle != IntPtr.Zero)
+            if (this.handle != null)
             {
-                NativeZBar.zbar_image_destroy(this.handle);
-                this.handle = IntPtr.Zero;
+                this.handle.Dispose();
             }
             if (disposing)
             {
@@ -631,14 +683,6 @@ namespace zbarcs
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// 终结器。
-        /// </summary>
-        ~Image()
-        {
-            this.Dispose(false);
         }
     }
 }

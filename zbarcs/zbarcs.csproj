@@ -50,10 +50,10 @@
     <Compile Include="Interop.cs" />
     <Compile Include="NativeZBar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SafeZBarHandle.cs" />
     <Compile Include="Scanner.cs" />
     <Compile Include="Symbol.cs" />
     <Compile Include="ZBar.cs" />
-    <Compile Include="ZBarException.cs" />
     <Compile Include="ZEnum.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
